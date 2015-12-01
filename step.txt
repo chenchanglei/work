@@ -1,1 +1,9 @@
-git clone https://github.com/chenchanglei/work.git
+获取git资源：
+	git clone https://github.com/chenchanglei/work.git
+添加账户信息：
+	git config --global user.email "642476443@qq.com"
+	git config --global user.name "chenchanglei"
+增加文件并提交到仓库，添加备注：
+	git add .
+	git commit -m "step record"
+	git push -u origin master 
