@@ -1,0 +1,30 @@
+M站页面（分支）
+现用地址：http://svn.tuanche.cn/svn/sold/user/html5/branches/sold-weixin_orderNew_20151113
+服务器：172.16.12.102 端口：5086
+域名：t.m2.tuanche.com/branchgq/wx/activity/index
+
+停止服务：/opt/soft/resin/bin/sold-branches-sh/gaoqing/sold-user-mobile-branchgq.sh stop
+启动服务：/opt/soft/resin/bin/sold-branches-sh/gaoqing/sold-user-mobile-branchgq.sh start
+
+export JAVA_HOME=/opt/soft/java
+export PATH=$JAVA_HOME/bin:$PATH
+PATH=$PATH:/usr/local/mysql/bin://opt/soft/java/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/local/mysql/bin
+/opt/soft/resin/bin/sold-branches-sh/gaoqing/sold-user-mobile-branchgq.sh stop
+
+export JAVA_HOME=/opt/soft/java
+export PATH=$JAVA_HOME/bin:$PATH
+PATH=$PATH:/usr/local/mysql/bin://opt/soft/java/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/local/mysql/bin
+/opt/soft/resin/bin/sold-branches-sh/gaoqing/sold-user-mobile-branchgq.sh start
+
+workspace="/opt/web/jenkins/workspace/tuanche_sold-user-mobile-branchgq"
+server_ip="172.16.12.102"
+server_home="/opt/web/sold-branches/gaoqing/sold-user-mobile-branchgq"
+server_conf_home="/opt/web/sold-branches/backup/sold-user-mobile-branchgq_conf"
+DATE=`date "+%Y-%m-%d"`
+/opt/soft/apache-maven-3.3.3/bin/mvn clean
+/opt/soft/apache-maven-3.3.3/bin/mvn compile
+svn info |tee $workspace/src/main/webapp/WEB-INF/lib/user_mobile_$DATE.svninfo
+#ssh $server_ip tar -cvzf $server_conf_home/user_mobile_WEBINF_$DATE.tar.gz $server_home/WEB-INF
+ssh $server_ip rm -fr $server_home/WEB-INF
+scp -r $workspace/src/main/webapp/WEB-INF $server_ip:$server_home/
+ssh $server_ip cp -fr $server_conf_home/application.properties  $server_home/WEB-INF/classes/

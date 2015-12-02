@@ -1,0 +1,43 @@
+微信页面（分支）
+现用地址：http://svn.tuanche.cn/svn/sold/user/html5/branches/sold-weixin_daily1
+服务器：172.16.12.102 端口：5085
+域名：t.m2.tuanche.com/branchgq/wx/activity/index
+
+停止服务：/opt/soft/resin/bin/sold-branches-sh/gaoqing/sold-weixin-branchgq.sh stop
+启动服务：/opt/soft/resin/bin/sold-branches-sh/gaoqing/sold-weixin-branchgq.sh start
+
+export JAVA_HOME=/opt/soft/java
+export PATH=$JAVA_HOME/bin:$PATH
+PATH=$PATH:/usr/local/mysql/bin://opt/soft/java/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/local/mysql/bin
+
+SPID=`ps -ef |grep sold-weixin-branchgq|grep -v grep |wc -l`
+if [ $SPID -eq 0 ]; then
+    echo "server not run"
+else
+   /opt/soft/resin/bin/sold-branches-sh/gaoqing/sold-weixin-branchgq.sh stop
+fi
+export JAVA_HOME=/opt/soft/java
+export PATH=$JAVA_HOME/bin:$PATH
+PATH=$PATH:/usr/local/mysql/bin://opt/soft/java/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/local/mysql/bin
+
+SPID=`ps -ef |grep sold-weixin-branchgq|grep -v grep |wc -l`
+if [ "$SPID" -ne 0 ]; then
+  /opt/soft/resin/bin/sold-branches-sh/gaoqing/sold-weixin-branchgq.sh stop 
+  /opt/soft/resin/bin/sold-branches-sh/gaoqing/sold-weixin-branchgq.sh start
+else
+   /opt/soft/resin/bin/sold-branches-sh/gaoqing/sold-weixin-branchgq.sh start
+fi
+
+workspace="/opt/web/jenkins/workspace/tuanche_sold-weixin-branchgq"
+server_ip="172.16.12.102"
+server_home="/opt/web/sold-branches/gaoqing/sold-weixin-branchgq"
+server_conf_home="/opt/web/sold-branches/backup/sold-weixin-branchgq_conf"
+DATE=`date "+%Y-%m-%d"`
+#/opt/soft/apache-maven-3.3.3/bin/mvn install
+/opt/soft/apache-maven-3.3.3/bin/mvn clean
+/opt/soft/apache-maven-3.3.3/bin/mvn compile
+svn info |tee $workspace/src/main/webapp/WEB-INF/lib/weixin_$DATE.svninfo
+#ssh $server_ip tar -cvzf $server_conf_home/weixin_WEBINF_$DATE.tar.gz $server_home/WEB-INF
+ssh $server_ip rm -r $server_home/WEB-INF
+scp -r $workspace/src/main/webapp/WEB-INF $server_ip:$server_home/
+ssh $server_ip cp -fr $server_conf_home/application.properties  $server_home/WEB-INF/classes/

@@ -1,0 +1,43 @@
+团车养车后台服务端（分支测试）
+svn现用地址：http://svn.tuanche.cn/svn/sold/admin/branches/mobile_fuelCard_sendEMS
+服务器：172.16.12.102
+部署位置：/opt/web/sold-branches/pengyan/sold-console-branchpy
+访问地址：http://172.16.12.102:4081
+
+停止： /opt/soft/resin/bin/sold-branches-sh/pengyan/sold-console-branchpy.sh stop
+启动： /opt/soft/resin/bin/sold-branches-sh/pengyan/sold-console-branchpy.sh start
+
+
+export JAVA_HOME=/opt/soft/java
+export PATH=$JAVA_HOME/bin:$PATH
+PATH=$PATH:/usr/local/mysql/bin://opt/soft/java/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/local/mysql/bin
+SPID=`ps -ef |grep sold-console-branchpy|grep -v grep |wc -l`
+if [ "$SPID" -eq 0 ]; then
+    echo "server not run"
+else
+ /opt/soft/resin/bin/sold-branches-sh/pengyan/sold-console-branchpy.sh stop
+fi
+export JAVA_HOME=/opt/soft/java
+export PATH=$JAVA_HOME/bin:$PATH
+PATH=$PATH:/usr/local/mysql/bin://opt/soft/java/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin:/usr/local/mysql/bin
+SPID=`ps -ef |grep sold-console-branchchp|grep -v grep |wc -l`
+if [ "$SPID" -ne 0 ]; then
+   /opt/soft/resin/bin/sold-branches-sh/pengyan/sold-console-branchpy.sh stop 
+   /opt/soft/resin/bin/sold-branches-sh/pengyan/sold-console-branchpy.sh start
+else
+    /opt/soft/resin/bin/sold-branches-sh/pengyan/sold-console-branchpy.sh start
+fi
+
+workspace="/opt/web/jenkins/workspace/tuanche_sold-console-branchpy"
+server_ip="172.16.12.102"
+server_home="/opt/web/sold-branches/pengyan/sold-console-branchpy"
+server_conf_home="/opt/web/sold-branches/backup/sold-console-branchpy_conf"
+DATE=`date "+%Y-%m-%d"`
+cd $workspace
+/opt/soft/ant/bin/ant -f build.xml clean  && echo "class类清理完成" && /opt/soft/ant/bin/ant -f build.xml
+svn info |tee $workspace/src/main/webapp/WEB-INF/lib/console_$DATE.svninfo
+#ssh $server_ip tar -cvzf $server_conf_home/sold_console_WEBINF_$DATE.tar.gz $server_home/WEB-INF
+ssh $server_ip rm -fr $server_home/*
+scp -r $workspace/src/main/webapp/* $server_ip:$server_home/
+ssh $server_ip cp -fr $server_conf_home/application.properties  $server_home/WEB-INF/classes/
+ssh $server_ip cp -fr $server_conf_home/applicationContext-hr.xml $server_home/WEB-INF/classes/config/

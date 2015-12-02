@@ -1,0 +1,44 @@
+团车养车dubbo服务器端（分支）
+svn代码：http://svn.tuanche.cn/svn/sold/service/branches/sold-service_daily1
+部署服务器：172.16.12.103
+部署位置：/opt/web/sold-branches/gaoqing/sold-service-branchgq
+端口：20053
+
+注意需要手动重启：
+停service服务：serv='sold-service-branchgq';ps -ef|grep -v grep|grep $serv|awk '{print $2}'|xargs -t kill -9
+启动service服务：cd /opt/web/sold-branches/gaoqing/sold-service-branchgq/WEB-INF/classes/bin;sh start.sh
+
+export JAVA_HOME=/opt/soft/java
+export PATH=$JAVA_HOME/bin:$PATH
+CLASSPATH=.:$JAVA_HOME/lib/tools.jar
+JAVA_HOME=/opt/soft/java
+export JAVA_HOME CLASSPATH PATH
+jc=`netstat -tlnp | grep 20053 | awk '{print $7}' | awk -F '/' '{print $1}'|wc -l`
+if [ $jc -ne 0 ];then
+    kill -9 $(netstat -tlnp | grep 20053 | awk '{print $7}' | awk -F '/' '{print $1}')  && echo "服务已停止"
+else
+    echo "service is stop"
+fi
+export JAVA_HOME=/opt/soft/java
+export PATH=$JAVA_HOME/bin:$PATH
+CLASSPATH=.:$JAVA_HOME/lib/tools.jar
+JAVA_HOME=/opt/soft/java
+export JAVA_HOME CLASSPATH PATH
+#cd /opt/web/sold-branches/gaoqing/sold-service-branchgq/WEB-INF/classes/bin
+#sh start.sh
+
+
+workspace="/opt/web/jenkins/workspace/tuanche_sold-service-branchgq"
+server_ip="172.16.12.103"
+server_home="/opt/web/sold-branches/gaoqing/sold-service-branchgq"
+server_conf_home="/opt/web/sold-branches/backup/sold-service-branchgq_conf"
+DATE=`date "+%Y-%m-%d"`
+/opt/soft/apache-maven-3.3.3/bin/mvn clean
+/opt/soft/apache-maven-3.3.3/bin/mvn compile
+/opt/soft/apache-maven-3.3.3/bin/mvn install
+/usr/bin/svn info |tee $workspace/target/classes/lib/service_$DATE.svninfo
+#/usr/bin/ssh $server_ip /bin/tar -cvzf $server_conf_home/service_WEB-INF_$DATE.tar.gz $server_home/WEB-INF/classes
+/usr/bin/ssh $server_ip /bin/rm -r $server_home/WEB-INF/classes
+/usr/bin/scp -r $workspace/target/classes $server_ip:$server_home/WEB-INF
+/usr/bin/ssh $server_ip cp -fr $server_conf_home/application.properties $server_home/WEB-INF/classes/application.properties
+/usr/bin/ssh $server_ip cp -fr $server_conf_home/dubbo.properties $server_home/WEB-INF/classes/conf/dubbo.properties
